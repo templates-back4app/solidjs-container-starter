@@ -100,3 +100,9 @@ manifestSha256: 054ffb580bf269fc49b75f787fcf877d78c58395f0e6b28fa95708922c4c36a7
 - `gzip_proxied any;` on Back4app.
 - Whether in-flight requests are dropped during the switch (only one request every 5 s was sent).
 - Not tested anywhere in this series: `confirm_action`, custom domains, env vars at creation, GitHub as the code source through MCP, behaviour after `urlExpiresAt`, a temporary (not signed in) account, the `files` upload path for clients with no terminal.
+
+## Compression fix verified on the public URL (2026-11-10)
+
+- Cause: requests reach the container through the platform's CDN with a `Via` header, and nginx's `gzip_proxied` is off by default, so nginx answered them uncompressed and the CDN compressed the response itself.
+- Fix: `gzip_proxied any;` in nginx.conf (commit 1c640f2), redeployed to the same app with `deploy_web_app`.
+- Main JS transferred from the public URL (`Accept-Encoding: gzip`): before 7,657 B, after 5,665 B. The "after" figure equals this bundle compressed by nginx at gzip_comp_level 6.
